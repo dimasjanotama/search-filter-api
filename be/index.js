@@ -18,10 +18,46 @@ const db = mysql.createConnection({
 })
 
 app.get('/gettitanic', (req,res)=>{
-    let sql= `select PassengerId, Survived, Pclass, Name, Sex, Age from train`
+    let sql= `select * from train`
+    let {query} = req
+    if(query){
+        sql += ` where`
+        // Nama, agemax and agemin, gender, pclass, survived
+        if(query.name){
+            sql += ` name like '%${query.name}%' and`
+        }
+        if(query.agemax && query.agemin) {
+            sql += ` age <= ${query.agemax} and ${query.agemin} <= age and`
+        }
+        if(query.gender){
+            sql += ` sex = '${query.gender}' and`
+        }
+        if(query.pclass){
+            sql += ` Pclass = '${query.pclass}' and`
+        }
+        if(query.survived < 2){
+            sql += ` survived = '${query.survived}' and`
+        } 
+    } 
+    db.query(sql.slice(0, -4), (err,result)=>{
+        try {
+            if (err) throw err
+            res.send(result)
+        } catch (err) {
+            console.log(err);
+        }
+    })  
+})
+
+app.get('/getclass', (req,res)=>{
+    let sql = `select Pclass from train group by Pclass order by Pclass;`
     db.query(sql, (err,result)=>{
-        if (err) throw err
-        res.send(result)
+        try {
+            if (err) throw err
+            res.send(result)
+        } catch (err) {
+            console.log(err);
+        }
     })
 })
 
